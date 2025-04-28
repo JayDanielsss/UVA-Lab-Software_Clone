@@ -75,20 +75,18 @@ def Write_To_CSV(df, Save_Path, Commentary, QCurveFile, QComment, TEQFile, TEQCo
     int
         1 if successful, error message if failed
     """
-    import pandas as pd
+    import csv
     import datetime 
     import os
 
     try:
-        # Create Event Number based on current timestamp
+
         EventNumber = int(datetime.datetime.now().timestamp())
 
-        # Prepare base data
         base_data = [EventNumber, Commentary, QCurveFile, QComment, TEQFile, TEQComment, TuneFile, 
                     FLower, FUpper, PeakAmp, PeakCenter, BeamON, RFLevel, IFAtten, 
                     Task3Temperature, Task3Pressure, NMRChannel]
 
-        # Define headers
         base_headers = ["Event Numbers", "Commentary", "Q Curve File", "Q Comment", "TEQ File", "TEQ Comment", "Tune File", 
                     "Flower", "FUpper", "Peak Amp (V)", "Peak Center (MHz)", "Beam ON", "RF Level (dBm)", "IF Atten (dB)", 
                     "Task3 Temperature", "Task3 Pressure", "NMR Channel"]
@@ -96,23 +94,22 @@ def Write_To_CSV(df, Save_Path, Commentary, QCurveFile, QComment, TEQFile, TEQCo
         signal_headers = [f"ADC_{i+1}" for i in range(len(sigArray))]   
         all_headers = base_headers + signal_headers
 
-        # Create new row
-        new_row = pd.DataFrame([base_data + sigArray], columns=all_headers)
-        
-        # Check if file exists
-        if os.path.exists(Save_Path):
-            # If file exists, read it and append new data
-            existing_df = pd.read_csv(Save_Path)
-            df = pd.concat([existing_df, new_row], ignore_index=True)
-        else:
-            # If file doesn't exist, use the new row as the DataFrame
-            df = new_row
-        
-        # Save to CSV
-        df.to_csv(Save_Path, index=False)
+        directory = os.path.dirname(Save_Path)
+        if directory and not os.path.exists(directory):
+            os.makedirs(directory)
 
-        return 1  # Return 1 if successful (LabVIEW requires a return value)
+        file_exists = os.path.exists(Save_Path)
+
+        with open(Save_Path, 'a', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            
+            if not file_exists:
+                writer.writerow(all_headers)
+            
+            writer.writerow(base_data + sigArray)
+
+        return 1  
 
     except Exception as e:
         print(f"Error: {e}")
-        return str(e) 
+        return str(e)  
