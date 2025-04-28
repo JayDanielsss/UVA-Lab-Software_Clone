@@ -102,15 +102,15 @@ def Write_To_CSV(Save_Path, Commentary, QCurveFile, QComment, TEQFile, TEQCommen
 
       save_file = os.path.join(Save_Path,str(EventNumber),".csv")
 
-        with open(save_file, 'a', newline='') as csvfile:
-            writer = csv.writer(csvfile)
-            
-            if not file_exists:
-                writer.writerow(all_headers)
-            
-            writer.writerow(base_data + sigArray)
+      with open(save_file, 'a', newline='') as csvfile:
+          writer = csv.writer(csvfile)
+          
+          if not file_exists:
+              writer.writerow(all_headers)
+          
+          writer.writerow(base_data + sigArray)
 
-        return 1  
+      return 1  
 
     except Exception as e:
         print(f"Error: {e}")
