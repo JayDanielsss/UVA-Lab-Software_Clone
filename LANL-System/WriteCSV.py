@@ -22,7 +22,7 @@
 # ... (Up to 400)
 # ADC_400
 
-def Write_To_CSV(df, Save_Path, Commentary, QCurveFile, QComment, TEQFile, TEQComment, TuneFile, 
+def Write_To_CSV(Save_Path, Commentary, QCurveFile, QComment, TEQFile, TEQComment, TuneFile, 
                  FLower, FUpper, PeakAmp, PeakCenter, BeamON, RFLevel, IFAtten, 
                  Task3Temperature, Task3Pressure, NMRChannel, sigArray):
     """
