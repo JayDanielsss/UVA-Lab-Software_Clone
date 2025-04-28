@@ -100,7 +100,9 @@ def Write_To_CSV(Save_Path, Commentary, QCurveFile, QComment, TEQFile, TEQCommen
 
         file_exists = os.path.exists(Save_Path)
 
-        with open(Save_Path, 'a', newline='') as csvfile:
+      save_file = os.path.join(Save_Path,str(EventNumber),".csv")
+
+        with open(save_file, 'a', newline='') as csvfile:
             writer = csv.writer(csvfile)
             
             if not file_exists:
