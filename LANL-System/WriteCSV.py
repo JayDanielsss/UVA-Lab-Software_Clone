@@ -24,7 +24,7 @@
 
 def Write_To_CSV(Save_Path, Commentary, QCurveFile, QComment, TEQFile, TEQComment, TuneFile, 
                  FLower, FUpper, PeakAmp, PeakCenter, BeamON, RFLevel, IFAtten, 
-                 Task3Temperature, Task3Pressure, NMRChannel, sigArray):
+                 Task3Temperature, Task3Pressure, NMRChannel, sigArray, RunNumber):
     """
     Writes data to a CSV file in a format compatible with LabVIEW.
     If the file exists, appends the new data. If not, creates a new file.
@@ -83,11 +83,11 @@ def Write_To_CSV(Save_Path, Commentary, QCurveFile, QComment, TEQFile, TEQCommen
 
         EventNumber = int(datetime.datetime.now().timestamp())
 
-        base_data = [EventNumber, Commentary, QCurveFile, QComment, TEQFile, TEQComment, TuneFile, 
+        base_data = [RunNumber, EventNumber, Commentary, QCurveFile, QComment, TEQFile, TEQComment, TuneFile, 
                     FLower, FUpper, PeakAmp, PeakCenter, BeamON, RFLevel, IFAtten, 
                     Task3Temperature, Task3Pressure, NMRChannel]
 
-        base_headers = ["Event Numbers", "Commentary", "Q Curve File", "Q Comment", "TEQ File", "TEQ Comment", "Tune File", 
+        base_headers = ["Run Number", "Event Numbers", "Commentary", "Q Curve File", "Q Comment", "TEQ File", "TEQ Comment", "Tune File", 
                     "Flower", "FUpper", "Peak Amp (V)", "Peak Center (MHz)", "Beam ON", "RF Level (dBm)", "IF Atten (dB)", 
                     "Task3 Temperature", "Task3 Pressure", "NMR Channel"]
         
@@ -98,16 +98,18 @@ def Write_To_CSV(Save_Path, Commentary, QCurveFile, QComment, TEQFile, TEQCommen
         if directory and not os.path.exists(directory):
             os.makedirs(directory)
             
-        save_file = os.path.join(Save_Path,str(EventNumber),".csv")
+        save_file = os.path.join(Save_Path,"Run_" + str(RunNumber) + ".csv")
 
-        if not os.path.exists(save_file):
+        if os.path.exists(save_file):
+            with open(save_file, 'a', newline='') as csvfile:
+                writer = csv.writer(csvfile)
+                writer.writerow(base_data + sigArray)
+        else:
             with open(save_file, 'w', newline='') as csvfile:
                 writer = csv.writer(csvfile)
                 writer.writerow(all_headers)
+                writer.writerow(base_data + sigArray)
 
-        with open(save_file, 'a', newline='') as csvfile:
-            writer = csv.writer(csvfile)
-            writer.writerow(base_data + sigArray)
         return 1  
 
     except Exception as e:
