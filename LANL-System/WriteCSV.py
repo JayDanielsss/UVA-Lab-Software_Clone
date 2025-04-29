@@ -46,6 +46,8 @@ def Write_To_CSV(Save_Path, Commentary, QCurveFile, QComment, TEQFile, TEQCommen
                     FLower, FUpper, PeakAmp, PeakCenter, BeamON, RFLevel, IFAtten, 
                     Task3Temperature, Task3Pressure, NMRChannel]
         
+        RunNumber = int(RunNumber)
+        
         # Define headers
         base_headers = ["Run Number", "Event Number", "Commentary", "Q Curve File", "Q Comment", "TEQ File", "TEQ Comment", "Tune File", 
                     "FLower", "FUpper", "Peak Amp (V)", "Peak Center (MHz)", "Beam ON", "RF Level (dBm)", "IF Atten (dB)", 
