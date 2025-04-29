@@ -23,9 +23,9 @@
 # ... (Up to 400)
 # ADC_400
 
-def Write_To_CSV(Save_Path, Commentary, QCurveFile, QComment, TEQFile, TEQComment, TuneFile, 
+def Write_To_CSV(Save_Path, RunNumber, Commentary, QCurveFile, QComment, TEQFile, TEQComment, TuneFile, 
                  FLower, FUpper, PeakAmp, PeakCenter, BeamON, RFLevel, IFAtten, 
-                 Task3Temperature, Task3Pressure, NMRChannel, sigArray, RunNumber):
+                 Task3Temperature, Task3Pressure, NMRChannel, sigArray):
     """
     Writes data to a CSV file in a format compatible with LabVIEW.
     If the file exists, appends the new data. If not, creates a new file.
@@ -35,7 +35,6 @@ def Write_To_CSV(Save_Path, Commentary, QCurveFile, QComment, TEQFile, TEQCommen
     import datetime 
     import os
     import tempfile
-    import re
     
     try:
         # Create a timestamp for the event number
