@@ -41,36 +41,35 @@ def Write_To_CSV(StringData, NumericData, SignalData):
     TEQFile = StringData[4]
     TEQComment = StringData[5]
     TuneFile = StringData[6]
+    MeasurementType = StringData[7]
 
     RunNumber = NumericData[0]
-    EventNumber = NumericData[1]
-    FLower = NumericData[2]
-    FUpper = NumericData[3]
-    PeakAmp = NumericData[4]
-    PeakCenter = NumericData[5]
-    BeamON = NumericData[6]
-    RFLevel = NumericData[7]
-    IFAtten = NumericData[8]
-    Task3Temperature = NumericData[9]
-    Task3Pressure = NumericData[10]
-    NMRChannel = NumericData[11]
-    
-    
+    PeakAmp = NumericData[1]
+    PeakCenter = NumericData[2]
+    BeamON = NumericData[3]
+    RFLevel = NumericData[4]
+    IFAtten = NumericData[5]
+    HeTemperature = NumericData[6]
+    HePressure = NumericData[7]
+    NMRChannel = NumericData[8]
+    Temperature = NumericData[9]
+    CalibrationConstant = NumericData[10]
+
     try:
         # Create a timestamp for the event number
         EventNumber = int(datetime.datetime.now().timestamp())
         
         # Prepare data row
         base_data = [RunNumber, EventNumber, Commentary, QCurveFile, QComment, TEQFile, TEQComment, TuneFile, 
-                    FLower, FUpper, PeakAmp, PeakCenter, BeamON, RFLevel, IFAtten, 
-                    Task3Temperature, Task3Pressure, NMRChannel]
+                    PeakAmp, PeakCenter, BeamON, RFLevel, IFAtten, 
+                    HeTemperature, HePressure, NMRChannel, Temperature, CalibrationConstant, MeasurementType]
         
         RunNumber = int(RunNumber)
         
         # Define headers
         base_headers = ["Run Number", "Event Number", "Commentary", "Q Curve File", "Q Comment", "TEQ File", "TEQ Comment", "Tune File", 
-                    "FLower", "FUpper", "Peak Amp (V)", "Peak Center (MHz)", "Beam ON", "RF Level (dBm)", "IF Atten (dB)", 
-                    "Task3 Temperature", "Task3 Pressure", "NMR Channel"]
+                    "Peak Amp (V)", "Peak Center (MHz)", "Beam ON", "RF Level (dBm)", "IF Atten", 
+                    "He Temperature", "He Pressure", "NMR Channel", "Temperature", "CC", "Measurement Type"]
         
         signal_headers = [f"ADC_{i+1}" for i in range(len(SignalData))]   
         all_headers = base_headers + signal_headers
