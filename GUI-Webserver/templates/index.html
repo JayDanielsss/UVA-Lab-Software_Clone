@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HMI Data Plot</title>
+
+    <!-- import stuff -->
+    <!-- Include Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <!-- Include JQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <!-- Include flot js -->
+    <script src=" https://cdn.jsdelivr.net/npm/flot@4.2.6/dist/es5/jquery.flot.min.js "></script>
+    <!-- Include library for axis titles flot.js -->
+    <script src="../static/js/jquery.flot.axislabels.js"></script>
+    <!-- Include Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Karla:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <script>
+        // store time
+        let hours = 1;
+        let minutes = 0;
+        let seconds = 0;
+        let updateTime = 5;
+
+        let remainingTime = null;
+        let timerInterval = null;
+        let selectedKeys = [];
+
+        // Function to update the plot
+        function updatePlot(data, selectedColumns) {
+            const timestamps = data.map((_, index) => index + 1); // Use row index as x-axis (time)
+
+            // Build one series per selected column
+            console.log(selectedColumns);
+            const plotData = selectedColumns.map(column => ({
+                label: column,
+                data: timestamps.map((t, i) => [t, data[i][column]]),
+                points: { show: true },
+                lines: { show: false }
+            }));
+
+            const options = {
+                xaxis: {
+                    axisLabel: 'Time',
+                    axisLabelUseCanvas: true,
+                    axisLabelFontSizePixels: 20,
+                    axisLabelFontFamily: 'Arial'
+                },
+                yaxis: {
+                    axisLabel: 'Value',
+                    axisLabelUseCanvas: true
+                },
+                legend: {
+                    position: 'ne',
+                    backgroundOpacity: 0.85,
+                    labelBoxBorderColor: '#ccc',
+                    show: true
+                }
+            };
+
+            // Update Flot chart
+            $('#chart').empty(); // Clear previous chart
+            if (selectedColumns.length > 0) $.plot($('#chart'), plotData, options);
+
+            // Update chart title
+            if (selectedColumns.length == 1) $('#flot-title').text(`${selectedColumns[0]} vs. Time`);
+            else if (selectedColumns.length == 0) $('#flot-title').text(`No data selected`);
+            else $('#flot-title').text(`Multiple Signals vs. Time`);
+        }
+
+        async function fetchDataFromDB(selectedKeys) {
+            // time interval stuff
+            const now = new Date();
+            const totalMs = (hours * 3600 + minutes * 60 + seconds) * 1000;
+            const start = new Date(now.getTime() - totalMs);
+
+            const startTimeStr = start.toISOString().slice(0, 19).replace('T', ' ');
+            const endTimeStr = now.toISOString().slice(0, 19).replace('T', ' ');
+
+            const params = new URLSearchParams();
+            params.append('keys', selectedKeys.join(','));
+            params.append('start_time', startTimeStr);
+            params.append('end_time', endTimeStr);
+            
+            // actually fetch data from DB 
+            try {
+                const response = await fetch(`/query_db?${params.toString()}`);
+                if (!response.ok) throw new Error('Failed to fetch data from server');
+
+                const result = await response.json();
+                return {
+                    headers: result.columns,
+                    data: result.data
+                };
+            } catch (err) {
+                console.error('Error fetching from server:', err);
+                return { headers: [], data: [] };
+            }
+        }
+
+        async function updateFromDB() {
+            const selectedKeys = Array.from(
+                document.querySelectorAll('input[type="checkbox"]:checked')
+            ).map(cb => cb.dataset.key);
+
+            if (selectedKeys.length === 0) {
+                $('#chart').empty();
+                $('#flot-title').text("No data selected");
+                return;
+            }
+
+            // Optional: set a time window (e.g., last 1 hour)
+            const now = new Date();
+            const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+
+            const startTime = oneHourAgo.toISOString().slice(0, 19).replace('T', ' ');
+            const endTime = now.toISOString().slice(0, 19).replace('T', ' ');
+
+            const { headers, data } = await fetchDataFromDB(selectedKeys);
+
+            updatePlot(data, selectedKeys);
+        }
+
+        function refreshUpdatetime() {
+            const display = document.getElementById('countdown');
+            display.textContent = "Auto-Update in " + remainingTime + " / ";
+
+            if (remainingTime > 0) remainingTime--;
+            else {
+                startCountdownFromServer();
+            }
+        }
+
+        // update 'last updated' time
+        function updateLastUpdatedTime() {
+            const now = new Date();
+            const formatted = now.getFullYear() + '/' +
+                String(now.getMonth() + 1).padStart(2, '0') + '/' +
+                String(now.getDate()).padStart(2, '0') + ' ' +
+                String(now.getHours()).padStart(2, '0') + ':' +
+                String(now.getMinutes()).padStart(2, '0') + ':' +
+                String(now.getSeconds()).padStart(2, '0');
+
+            document.getElementById('last-updated').textContent = `Last updated @ ${formatted}`;
+        }
+
+        async function startCountdownFromServer() {
+            // reset remaining time 
+            remainingTime = updateTime;
+
+            // reset timer interval
+            if (timerInterval) clearInterval(timerInterval);
+            refreshUpdatetime();
+            timerInterval = setInterval(refreshUpdatetime, 1000);
+
+            // update plot
+            updateFromDB();
+
+            // update 'last updated' time
+            updateLastUpdatedTime();
+        }
+
+        // countdown timer
+        document.addEventListener('DOMContentLoaded', startCountdownFromServer);
+    </script>
+</head>
+
+<body>
+    <!-- title -->
+    <h1>All Target Parameters with Auto Update</h1>
+
+    <!-- time/refresh -->
+    <form id="refresh-form">
+        <div class="form-group">
+            <label for="hours">H:</label>
+            <input type="number" id="hours" name="hours">
+        </div>
+
+        <div class="form-group">
+            <label for="minutes">M:</label>
+            <input type="number" id="minutes" name="minutes">
+        </div>
+
+        <div class="form-group">
+            <label for="seconds">S:</label>
+            <input type="number" id="seconds" name="seconds">
+        </div>
+
+        <div class="form-group">
+            <label for="update_every" id="countdown">Auto-Update in 30 /</label>
+            <input type="number" id="update_every" name="update_every">
+        </div>
+
+        <div class="form-group">
+            <input type="submit" value="Submit">
+        </div>
+    </form>
+
+    <!-- Update status -->
+    <p id="last-updated" style="margin-top: 10px; font-size: 14px; color: #555;">
+        Last updated @ --
+    </p>
+
+    <h2 id="flot-title"></h2>
+    <div id="chart"></div>
+
+    <div class="grid-container" id="grid"></div>
+    <!-- <div id="plot"></div> -->
+
+    <script>
+        // form stuff
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('refresh-form');
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault(); // stops the redirect to /refresh
+
+                // update stuff
+                hours = parseInt(document.getElementById('hours').value) || 0;
+                minutes = parseInt(document.getElementById('minutes').value) || 0;
+                seconds = parseInt(document.getElementById('seconds').value) || 0;
+                updateTime = parseInt(document.getElementById('update_every').value) || 1;
+
+                // restart countdown w/ new refresh time
+                startCountdownFromServer();
+            })
+        })
+
+        // populate parameters
+        const titles = ['Lab QT', 'QT LiqQ', 'QT LiqB', 'QT Purifier', 'QT System', 'Cryo Pressure', 'Cryo Purity', 'Cryo Temperature'];
+        const checkboxData = [
+            ['fc501_ai', 'fc501_out', 'fc502_ai', 'fc502_out', 'lit501_ai', 'pt501_ai', 'pt502_ai', 'pt503_ai', 'pt504_ai', 'purity_downstream', 'purity_upstream', 'ait501_ai', 'ti501_ai', 'ti502_ai', 'ti503_ai', 'ti504_ai', 'ti505_ai', 'ti523_ai'],
+            ['PT501', 'PT502', 'PT503', 'PD', 'LI501', 'PT', 'TID', 'TI502', 'TI504', 'TI506', 'TI508', 'TI510', 'FC501Q', 'FC501I', 'FCQ', 'FCI', 'LakeShoreCurves_TIDAOHM'],
+            ['PT501', 'PT502', 'PT503', 'PD', 'LI501', 'PT', 'TID', 'TI502', 'TI504', 'TI506', 'TI508', 'TI510', 'FC501Q', 'FC501I', 'FCQ', 'FCI', 'LakeShoreCurves_TIDBOHM'],
+            ['T1A', 'Level A', 'PRTY_Calibrated', 'PRTY', 'PBA', 'PRTY_Calibrated_A_Out', 'PRTY_Calibrated_A_Mid', 'Flow Controller Flow', 'Vfc', 'DPfc', 'Pfc', 'T2Amv', 'T1Amv', 'T2A', 'PTA'],
+            ['Manifolds PT8', 'Manifolds Magnet Dewar Level', 'Manifolds TCD_Smooth', 'Manifolds TX1', 'Manifolds FMR', 'Manifolds Magnet Dewar Pressure', 'Manifolds PC1', 'ODH EV-105-N', 'ODH TE-104N', 'ODH TE-107N', 'ODH TE-108N', 'ODH LL-106-N', 'ODH TE-109N', 'HR3 Enabled', 'ODH PT-106-N', 'ODH PT-110-N'],
+            ['IVC T1F', 'IVC T2F', 'IVC T1T', 'IVC T2T', 'IVC', 'IVC T1', 'IVC T2', 'Fridge/1000', 'Fridge/100', 'He3 Probe', 'Return Manifold', 'Main Return #1', 'Roots-Pump Top', 'Roots-Pump Middle', 'Separator Return', 'Magnet Return', 'Main Return #2', 'n/c', 'Outside gHe Tank', 'HR3 Inlet', 'PTMR3'],
+            ['He Purity'],
+            ['Fridge/1000', 'Fridge/100', 'Fridge/He3', 'Tank T', 'Tank B', 'Coil T', 'Coil B', 'Coil T1', 'Coil T2', 'Coil T3', 'Coil T4', 'Coil B1', 'Coil B2', 'Coil B3', 'Coil B4', 'IVC Side Bottom', 'IVC Side Top', 'Fridge Top', 'LHe FL Stinger', 'LHe FL #1', 'LHe FL #2', 'Cooldown Line TX3', 'Cooldown Line TX2', 'Annealling A', 'Annealing B', 'Microwave A', 'Microwave B', 'He Riser', 'IVC Top', 'Heat Tape on IVC', 'Heat Tape on Turret', 'Baffle Top', 'Baffle Bottom', 'Separator Top', 'Separator Bottom', 'Heat-Ex Top', 'Heat-Ex Bottom', 'Ann-Plate Bar', 'Ann-Plate Top', 'Insert 1', 'Insert 2', 'Insert 3', 'Insert 4', 'Insert 5', 'Insert 6', 'Insert 7', 'Insert 8', 'Cernox 7', 'Cernox 8', 'Outside gHe Tank B', 'Outside gHe Tank R', 'Outside gHe Tank T', 'Outside gHe Tank L', 'Outside gHe Tank', 'LJT4']
+        ];
+
+        const grid = document.getElementById('grid');
+
+        titles.forEach((title, index) => {
+            // Left column: title
+            const titleDiv = document.createElement('div');
+            titleDiv.className = 'left-column';
+            titleDiv.textContent = title;
+            grid.appendChild(titleDiv);
+
+            // Right column: checkboxes
+            const checkboxes = checkboxData[index] || [];
+            const rightCol = document.createElement('div');
+            rightCol.className = 'right-column';
+
+            checkboxes.forEach(labelText => {
+                const group = document.createElement('div');
+                group.className = 'checkbox-group';
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                const id = `${title}-${labelText}`.toLowerCase().replace(/\s+/g, '-');
+                checkbox.id = id;
+
+                checkbox.dataset.key = labelText.toLowerCase().replace(/\s+/g, '_');
+
+                const label = document.createElement('label');
+                label.htmlFor = id;
+                label.textContent = labelText;
+
+                group.appendChild(checkbox);
+                group.appendChild(label);
+                rightCol.appendChild(group);
+            });
+
+            grid.appendChild(rightCol);
+        });
+
+        // function for responding to checkboxes
+        async function handleCheckboxChange() {
+            selectedKeys = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
+                .map(cb => cb.dataset.key);
+
+            if (selectedKeys.length === 0) {
+                $('#chart').empty(); // Clear the chart if nothing is selected
+                $("#flot-title").text("No data selected");
+                return;
+            }
+
+            const { data: dbData } = await fetchDataFromDB(selectedKeys); // Or however you fetch all table rows
+
+            updatePlot(dbData, selectedKeys);
+        }
+
+        // setup trigger to update plot upon marking checkbox
+        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', handleCheckboxChange);
+        });
+    </script>
+</body>
+
+</html>

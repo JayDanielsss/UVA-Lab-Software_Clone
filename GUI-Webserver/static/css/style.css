@@ -1,0 +1,212 @@
+body {
+    font-family: 'Karla', sans-serif;
+    margin: 0;
+    display: flex;
+    /* flexbox flowing vertically */
+    flex-direction: column;
+    align-items: center;
+    /* center items in flexbox */
+    justify-content: center;
+    min-height: 100vh;
+    /* makes body take up 100% of viewport */
+    background-color: #f8f9fa;
+}
+
+h1 {
+    text-align: center;
+    /* center title */
+    margin-top: 30px;
+    font-size: 2.8rem;
+    color: #2c3e50;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+    letter-spacing: 1px;
+    position: relative;
+    padding-bottom: 15px;
+}
+
+/* creates underline bar */
+h1:after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    /* pulls element back 50% of its width for a true center */
+    width: 80px;
+    height: 4px;
+    background: linear-gradient(to right, #3498db, #2c3e50);
+    border-radius: 2px;
+}
+
+/* 'Select a value to plot' */
+label {
+    /*display: block;*/
+    margin: 0 auto 15px;
+    text-align: center;
+    font-family: 'Karla', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #34495e;
+    letter-spacing: 0.5px;
+}
+
+/* choose timeframe */
+form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 24px; /* spacing between groups */
+  width: auto;
+  background-color: white;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  align-items: center;
+  font-family: 'Arial', sans-serif;
+}
+
+form label {
+  margin-bottom: 4px;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+form input[type="number"] {
+  padding: 6px 8px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  width: 80px;
+}
+
+form .form-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+form input[type="submit"] {
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  background-color: #3498db;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-top: 4px;
+}
+
+form input[type="submit"]:hover {
+  background-color: #2980b9;
+}
+
+#plot {
+    width: 90%;
+    max-width: 1000px;
+    height: 600px;
+    margin: 25px auto;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 2em;
+    background-color: white;
+}
+
+.legendLayer .background {
+	fill: rgba(255, 255, 255, 0.85);
+} 
+
+#chart {
+    width: 90%;
+    max-width: 1000px;
+    height: 600px;
+    margin: 25px auto;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    background-color: white;
+}
+
+.control-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 10px 0;
+    padding: 15px 15px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    width: 90%;
+    max-width: 500px;
+}
+
+.grid-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px;
+    max-width: 1000px;
+    background-color: white;
+    margin-bottom: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    font-family: Arial, sans-serif;
+}
+
+.grid-section {
+    display: grid;
+    grid-template-columns: 1fr 3fr;
+    background: #f9f9f9;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.left-column {
+    font-weight: bold;
+    padding-top: 6px;
+}
+
+.right-column {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 20px;
+}
+
+/* Style for checkbox group to match form aesthetics */
+.checkbox-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background-color: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  font-size: 14px;
+  transition: background-color 0.2s ease;
+}
+
+/* Optional: highlight on hover */
+.checkbox-group:hover {
+  background-color: #f0f8ff;
+}
+
+/* Custom checkbox styling */
+.checkbox-group input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #3498db; /* modern blue tone */
+  cursor: pointer;
+}
+
+/* Checkbox labels */
+.checkbox-group label {
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+}
