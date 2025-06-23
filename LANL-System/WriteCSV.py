@@ -34,6 +34,28 @@ def Write_To_CSV(StringData, NumericData, SignalData):
     import os
     import tempfile
 
+
+    ### Let's also include:
+
+    # 1. Polarization
+    # 2. Area
+    # 3. Scan Sweeps
+    # 4. Scan Steps
+    # 5. Scan Frequency
+    # 6. RF Frequency
+    # 7. RF Modulation
+    # 8. Yale Gain (May not need)
+    # 9. DC Level
+    # 10. He3 Pressure
+    # 11. He3 Temperature
+    # 12. Sep Flow
+    # 13. Main flow
+    # 14. MagLevel
+    # 15. RF Volts
+    # 16. LN2 Level
+    # 17. Vacuum Pressure
+
+
     Save_Path = StringData[0] 
     Commentary = StringData[1]
     QCurveFile = StringData[2]
@@ -47,13 +69,24 @@ def Write_To_CSV(StringData, NumericData, SignalData):
     PeakAmp = NumericData[1]
     PeakCenter = NumericData[2]
     BeamON = NumericData[3]
-    RFLevel = NumericData[4]
-    IFAtten = NumericData[5]
-    HeTemperature = NumericData[6]
-    HePressure = NumericData[7]
-    NMRChannel = NumericData[8]
-    Temperature = NumericData[9]
-    CalibrationConstant = NumericData[10]
+    RFLevel = NumericData[4] ## RF Power
+    IFAtten = NumericData[5] #IF Attenuation
+    HeTemperature = NumericData[6] #He4 Temperature
+    HePressure = NumericData[7] #He4 Pressure
+    NMRChannel = NumericData[8] #NMR Channel
+    Temperature = NumericData[9] #Temperature
+    CalibrationConstant = NumericData[10] #Calibration Constant
+
+    Polarization = StringData[11] #Polarization
+    PolarizationSTD = StringData[12] #Polarization STD
+    SNR = StringData[13] #SNR
+    StepWidth = StringData[14] #Step Width
+    CenterFreq = StringData[15] #Step Center
+    FreqSpan = StringData[16] #Step Frequency
+    Area = StringData[17] #Area
+    PhaseVoltage = StringData[18] #Phase Voltage
+    TuneVoltage = StringData[19] #Tune Voltage
+
 
     try:
         # Create a timestamp for the event number
@@ -62,16 +95,18 @@ def Write_To_CSV(StringData, NumericData, SignalData):
         # Prepare data row
         base_data = [RunNumber, EventNumber, Commentary, QCurveFile, QComment, TEQFile, TEQComment, TuneFile, 
                     PeakAmp, PeakCenter, BeamON, RFLevel, IFAtten, 
-                    HeTemperature, HePressure, NMRChannel, Temperature, CalibrationConstant, MeasurementType]
+                    HeTemperature, HePressure, NMRChannel, Temperature, CalibrationConstant, MeasurementType,
+                    Polarization, PolarizationSTD, SNR, StepWidth, CenterFreq, FreqSpan, Area, PhaseVoltage, TuneVoltage]
         
         RunNumber = int(RunNumber)
         
         # Define headers
         base_headers = ["Run Number", "Event Number", "Commentary", "Q Curve File", "Q Comment", "TEQ File", "TEQ Comment", "Tune File", 
                     "Peak Amp (V)", "Peak Center (MHz)", "Beam ON", "RF Level (dBm)", "IF Atten", 
-                    "He Temperature", "He Pressure", "NMR Channel", "Temperature", "CC", "Measurement Type"]
+                    "He Temperature", "He Pressure", "NMR Channel", "Temperature", "CC", "Measurement Type",
+                    "Polarization", "Polarization STD", "SNR", "Step Width", "Center Freq", "Freq Span", "Area", "Phase Voltage", "Tune Voltage"]
         
-        signal_headers = [f"ADC_{i+1}" for i in range(len(SignalData))]   
+        signal_headers = [f"ADC_{i}" for i in range(len(SignalData))]   
         all_headers = base_headers + signal_headers
         
         # Sanitize the path - remove any quotes or problematic characters
