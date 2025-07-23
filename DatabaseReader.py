@@ -1,6 +1,7 @@
 import sqlite3
 import os
 from typing import Any, Optional
+from datetime import datetime
 
 class DatabaseReader:
     def __init__(self, db_path: str):
@@ -50,6 +51,20 @@ class DatabaseReader:
         except sqlite3.Error as e:
             print(f"Error retrieving value: {e}")
             return None
+
+    def get_last_timestamp(self, table: str) -> Optional[datetime]:
+        try:
+            self.cursor.execute(f"""
+                SELECT timestamp FROM {table}
+                ORDER BY timestamp DESC
+                LIMIT 1
+            """)
+            result = self.cursor.fetchone()
+            if result and result[0]:
+                return datetime.fromisoformat(result[0])
+        except Exception as e:
+            print(f"Error getting last timestamp from {table}: {e}")
+        return None
 
     def close(self):
         self.conn.close()
